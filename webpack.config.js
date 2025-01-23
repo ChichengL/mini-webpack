@@ -29,6 +29,14 @@ module.exports = {
 					},
 				],
 			},
+			{
+				test: /\.(png|jpe?g|gif|svg)$/i, // 匹配图片文件
+				use: [
+					{
+						loader: path.join(__dirname, "./loaders/image-loader.js"), // 使用图片 Loader
+					},
+				],
+			},
 		],
 	},
 	plugins: [new RunPlugin(), new DonePlugin(), new BuildModulePlugin()], //插件
