@@ -2,6 +2,7 @@
 const path = require("path");
 const RunPlugin = require("./plugins/RunPlugin");
 const DonePlugin = require("./plugins/DonePlugin");
+const BuildModulePlugin = require("./plugins/BuildModulePlugin");
 module.exports = {
 	context: process.cwd(), // 当前的根目录
 	mode: "development", // 工作模式
@@ -30,5 +31,5 @@ module.exports = {
 			},
 		],
 	},
-	plugins: [new RunPlugin(), new DonePlugin()], //插件
+	plugins: [new RunPlugin(), new DonePlugin(), new BuildModulePlugin()], //插件
 };
