@@ -1,55 +1,73 @@
+const WebSocketServer = require("ws");
+const fs = require("fs");
+const path = require("path");
 class HMRPlugin {
+  constructor(options) {
+    this.options = options;
+  }
+
   apply(compiler) {
-    // 注入热更新运行时代码
-    compiler.hmrEnabled = true; // 添加此行
-    compiler.hooks.emit.tap("HMRPlugin", () => {
-      compiler.modules["hmr-runtime"] = JSON.stringify(this.getRuntimeCode());
+    // 在编译开始前监听文件变化
+    compiler.hooks.compile.tap("HMRPlugin", () => {
+      this.watchFiles(compiler);
     });
 
-    // 监听编译完成事件
-    compiler.hooks.afterCompile.tap("HMRPlugin", () => {
-      // 可以在这里添加模块哈希计算逻辑
-      // 为每个模块计算哈希
-      compiler.moduleHashes = {};
-      for (const moduleId in compiler.modules) {
-        // 使用简单的哈希算法 (实际项目中可使用更复杂的算法如MD5)
-        compiler.moduleHashes[moduleId] = this.calculateHash(
-          compiler.modules[moduleId]
-        );
+    // 在生成资源后通知客户端更新
+    compiler.hooks.afterEmit.tap("HMRPlugin", (compilation) => {
+      this.notifyClients(compilation);
+    });
+
+    // 启动 WebSocket 服务器
+    this.startWebSocketServer();
+  }
+
+  watchFiles(compiler) {
+    const { context } = compiler.options;
+    const watcher = fs.watch(
+      context,
+      { recursive: true },
+      (eventType, filename) => {
+        if (
+          filename &&
+          !path
+            .resolve(context, filename)
+            .startsWith(
+              path.resolve(compiler.root, compiler.options.output.path)
+            )
+        ) {
+          if (eventType === "change") {
+            const filePath = path.join(context, filename);
+            // 重新编译发生变化的模块
+            compiler.buildModule(filePath, false);
+            compiler.mkdirP(
+              path.resolve(compiler.root, compiler.options.output.path),
+              path.resolve(
+                compiler.root,
+                compiler.options.output.path,
+                compiler.options.output.filename
+              )
+            );
+          }
+        }
       }
-    });
+    );
   }
 
-  getRuntimeCode() {
-    return `
-            (function() {
-                const socket = new WebSocket('ws://localhost:8080/hmr');
-                socket.onmessage = function(event) {
-                    const update = JSON.parse(event.data);
-                    if (update.type === 'update') {
-                        console.log('Applying hot update...');
-                        update.modules.forEach(module => {
-                            __webpack_modules__[module.id] = module.factory;
-                        });
-                        // 触发模块更新回调
-                        if (window.hotUpdateCallback) {
-                            window.hotUpdateCallback();
-                        }
-                    }
-                };
-            })();
-        `;
-  }
-  // 新增方法：计算模块哈希
-  calculateHash(content) {
-    // 简单的哈希计算实现
-    let hash = 0;
-    for (let i = 0; i < content.length; i++) {
-      const char = content.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash; // 转换为32位整数
+  notifyClients(compilation) {
+    if (this.wss) {
+      this.wss.clients.forEach((client) => {
+        if (client.readyState === WebSocketServer.OPEN) {
+          client.send(JSON.stringify({ type: "update" }));
+        }
+      });
     }
-    return Math.abs(hash).toString(16);
+  }
+
+  startWebSocketServer() {
+    this.wss = new WebSocketServer.Server({ port: 8081 });
+    this.wss.on("connection", (ws) => {
+      console.log("Client connected to HMR server");
+    });
   }
 }
 

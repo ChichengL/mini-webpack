@@ -25,7 +25,7 @@ module.exports = {
           {
             loader: path.join(__dirname, "./loaders/babel-loader.js"),
             options: {
-              presets: ["@babel/preset-env"],
+              presets: [["@babel/preset-env", { "modules": "commonjs" }]],
             },
           },
         ],

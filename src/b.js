@@ -1,5 +1,5 @@
 let b = "b";
-import { a } from "./a";
+const { a } = require("./a");
 function hello() {
 	console.log("hello from b.js is a+B", a + b);
 }

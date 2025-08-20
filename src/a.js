@@ -1,5 +1,4 @@
-// const { b, hello } = require("./b");
-import { b, hello } from "./b";
+const { b, hello } = require("./b");
 function add(a, b) {
   return a + b;
 }
@@ -9,7 +8,7 @@ module.exports = {
   a,
 };
 
-import testImage from "../assets/test.png";
+// import testImage from "../assets/test.png";
 const img = new Image();
 img.src = testImage;
 document.body.appendChild(img);
