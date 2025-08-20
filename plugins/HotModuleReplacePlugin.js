@@ -64,10 +64,25 @@ class HMRPlugin {
   }
 
   startWebSocketServer() {
-    this.wss = new WebSocketServer.Server({ port: 8081 });
-    this.wss.on("connection", (ws) => {
-      console.log("Client connected to HMR server");
-    });
+    const startServer = (port) => {
+      try {
+        this.wss = new WebSocketServer.Server({ port });
+        this.wss.on("connection", (ws) => {
+          console.log("Client connected to HMR server on port", port);
+        });
+        console.log("WebSocket server started on port", port);
+      } catch (error) {
+        if (error.code === "EADDRINUSE") {
+          console.log(`Port ${port} is in use, trying ${port + 1}`);
+          startServer(port + 1);
+        } else {
+          throw error;
+        }
+      }
+    };
+
+    // 默认从8081端口开始尝试
+    startServer(8081);
   }
 }
 

@@ -8,7 +8,7 @@ module.exports = {
   a,
 };
 
-// import testImage from "../assets/test.png";
+import testImage from "../assets/test.png";
 const img = new Image();
 img.src = testImage;
 document.body.appendChild(img);

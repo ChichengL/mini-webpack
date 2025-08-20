@@ -1,40 +1,20 @@
+// simple-css-loader.js
 module.exports = function (source) {
-  // 将CSS转换为JavaScript模块
-  // 通过添加<style>标签将CSS插入到DOM中
-  const script = `
+  // 1. 转义CSS中的特殊字符（如引号、换行），避免破坏JS语法
+  const escapedCss = JSON.stringify(source);
+
+  // 2. 生成JS代码：创建style标签并插入CSS内容
+  const jsCode = `
+    // 创建style标签
     const style = document.createElement('style');
-    style.innerHTML = ${JSON.stringify(source)};
+    // 设置CSS内容
+    style.innerHTML = ${escapedCss};
+    // 插入到head中
     document.head.appendChild(style);
+    // 导出空对象（满足Webpack模块规范）
+    module.exports = {};
   `;
 
-  // 返回可执行的JavaScript代码
-  return script;
-};
-
-// 导出插件类
-module.exports.plugin = class CssLoaderPlugin {
-  apply(compiler) {
-    compiler.hooks.compilation.tap("CssLoaderPlugin", (compilation) => {
-      compilation.hooks.processAssets.tap(
-        {
-          name: "CssLoaderPlugin",
-          stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONS,
-        },
-        (assets) => {
-          for (const filename in assets) {
-            if (filename.endsWith(".css")) {
-              const source = assets[filename].source();
-              const js = this.loader(source);
-              assets[filename.replace(".css", ".js")] = js;
-            }
-          }
-        }
-      );
-    });
-  }
-};
-
-// 导出加载器函数
-module.exports.loader = function (source) {
-  return source;
+  // 3. 返回处理后的JS代码
+  return jsCode;
 };

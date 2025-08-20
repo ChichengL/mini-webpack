@@ -25,7 +25,7 @@ module.exports = {
           {
             loader: path.join(__dirname, "./loaders/babel-loader.js"),
             options: {
-              presets: [["@babel/preset-env", { "modules": "commonjs" }]],
+              presets: [["@babel/preset-env", { modules: "commonjs" }]],
             },
           },
         ],
@@ -35,6 +35,14 @@ module.exports = {
         use: [
           {
             loader: path.join(__dirname, "./loaders/image-loader.js"), // 使用图片 Loader
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: path.join(__dirname, "./loaders/css-loader.js"), // 使用图片 Loader
           },
         ],
       },
