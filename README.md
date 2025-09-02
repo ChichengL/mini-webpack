@@ -239,9 +239,3 @@ getSource(modulePath) {
 ### 模块运行时机制
 
 生成的 bundle 使用立即执行函数模式，将所有模块作为工厂函数存储，并从入口模块开始执行 。
-
-**Notes**
-
-这个 mini-webpack 实现了 webpack 的核心功能，包括模块解析、依赖管理、loader 系统和插件架构。入口模块的处理是整个构建流程的起点，通过递归依赖分析确保所有相关模块都被正确处理。系统还支持热模块替换(HMR)功能，通过 WebSocket 实现开发时的实时更新。
-
-Wiki pages you might want to explore:
